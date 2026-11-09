@@ -173,9 +173,9 @@ export function buildGarment3D(m: BodyModel, spec: GarmentSpec, stiffness: numbe
     const top = s.bicep / (2 * Math.PI) / 100
     const bot = s.opening / (2 * Math.PI) / 100
     const rings: Array<{ d: number; r: number }> = []
-    const capR = m.arm[0].r * 1.14
+    const capR = m.arm[0].r * 1.07
     // Sleeve head: a dome over the deltoid (like a set-in sleeve cap), then the sleeve body.
-    const capH = 0.062
+    const capH = 0.052
     for (let i = 0; i <= 10; i++) {
       const u = i / 10
       const d = -capH + capH * u

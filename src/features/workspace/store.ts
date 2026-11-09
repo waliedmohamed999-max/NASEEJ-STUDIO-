@@ -112,7 +112,7 @@ export const useWorkspace = create<WorkspaceState>()(
       styles: {}, activeId: null, versions: {}, past: [], future: [], _key: '', _at: 0,
       tool: 'select', sel: EMPTY_SEL, panes: ['pattern', '3d', 'flat'], paneSizes: [0.42, 0.33, 0.25],
       inspector: true, inspectorWidth: 300, units: 'cm', showSA: true, showGrid: true, snap: true, nest: false,
-      viewSize: 'M', pose: 'standing', lighting: 'studio', fitMap: 'off', skin: '#d9cdbf', hair: 'bun', playing: false, migrated: false,
+      viewSize: 'M', pose: 'standing', lighting: 'studio', fitMap: 'off', skin: '#e8c3a6', hair: 'long', playing: false, migrated: false,
 
       active: () => { const { styles, activeId } = get(); return activeId ? styles[activeId] ?? null : null },
 
@@ -206,6 +206,13 @@ export const useWorkspace = create<WorkspaceState>()(
     }),
     {
       name: 'naseej-workspace',
+      version: 2,
+      // v2: the default avatar became a human figure; move old mannequin prefs over
+      migrate: (persisted, version) => {
+        const st = persisted as Partial<WorkspaceState>
+        if (version < 2) { if (!st.skin || st.skin === '#d9cdbf') st.skin = '#e8c3a6'; if (!st.hair || st.hair === 'bun') st.hair = 'long' }
+        return st as WorkspaceState
+      },
       storage: createJSONStorage(() => debouncedStorage()),
       partialize: (s) => ({
         styles: s.styles, activeId: s.activeId, versions: s.versions, panes: s.panes, paneSizes: s.paneSizes,

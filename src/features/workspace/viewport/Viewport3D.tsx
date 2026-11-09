@@ -16,15 +16,17 @@ import { deriveSpec } from '../model/spec'
 import { fabricPhysics, solverParams } from '../model/physics'
 import type { Style } from '../model/types'
 import { buildGarment3D, easeColor, strainColor, pressureColor, LEGENDS, type Garment3D } from './garment3d'
-import { buildArm, buildHair, buildHead, buildLeg, buildTorso, envelopeRingAt, normalMapFor, shadeBackFaces } from './mannequin'
+import { buildArm, buildHair, buildHead, buildLeg, buildShoe, buildTorso, envelopeRingAt, faceTexture, hairTexture, normalMapFor, shadeBackFaces } from './mannequin'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { registerViewport } from './simApi'
 
 /* ------------------------------------------------------------------ */
 /* Presets                                                            */
 /* ------------------------------------------------------------------ */
-const SKINS = ['#d9cdbf', '#f1d6c4', '#e0b899', '#c99a74', '#a87655', '#7d5238', '#4f3324']
-const HAIR_COLOR = '#2b2019'
+/** First swatch = abstract mannequin; the rest are human skin tones (painted face, hair, shoes). */
+export const MANNEQUIN_SKIN = '#d9cdbf'
+const SKINS = [MANNEQUIN_SKIN, '#f3d9c7', '#e8c3a6', '#d9a882', '#bf8a63', '#93603f', '#5e3b26']
+const HAIR_COLOR = '#2a1b13'
 const BG: Record<Lighting, string> = {
   studio: 'radial-gradient(120% 90% at 50% 30%, #fbf9f5 0%, #ece6dc 70%, #e2dbcf 100%)',
   daylight: 'linear-gradient(180deg, #eef3f7 0%, #f6f3ec 60%, #e9e3d7 100%)',
@@ -603,7 +605,26 @@ function Scene({ style, body, pose, playing, phase, live, fitMap, skin, hair, si
     color: skin, roughness: 0.52, sheen: 0.25, sheenRoughness: 0.6, sheenColor: new THREE.Color('#fff4ea'),
     clearcoat: 0.12, clearcoatRoughness: 0.55, side: THREE.DoubleSide,
   }), [skin])
-  const hairMat = useMemo(() => new THREE.MeshPhysicalMaterial({ color: HAIR_COLOR, roughness: 0.5, sheen: 0.8, sheenRoughness: 0.35, sheenColor: new THREE.Color('#8a6a52'), side: THREE.DoubleSide }), [])
+  const human = skin !== MANNEQUIN_SKIN
+  // human skin: soft, slightly translucent-looking (warm sheen); face painted on the head UVs
+  const humanSkin = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: skin, roughness: 0.58, sheen: 0.45, sheenRoughness: 0.7, sheenColor: new THREE.Color('#ff9c86'),
+    clearcoat: 0.05, clearcoatRoughness: 0.6, side: THREE.DoubleSide,
+  }), [skin])
+  const faceMat = useMemo(() => {
+    const mtl = humanSkin.clone()
+    mtl.map = faceTexture(skin)
+    mtl.color = new THREE.Color('#ffffff')
+    return mtl
+  }, [humanSkin, skin])
+  const shoeMat = useMemo(() => new THREE.MeshPhysicalMaterial({ color: '#2a2320', roughness: 0.38, clearcoat: 0.5, clearcoatRoughness: 0.3 }), [])
+  const hairMat = useMemo(() => new THREE.MeshPhysicalMaterial({
+    color: '#ffffff', map: hairTexture(HAIR_COLOR), roughness: 0.42, anisotropy: 0.7, anisotropyRotation: Math.PI / 2,
+    sheen: 0.7, sheenRoughness: 0.32, sheenColor: new THREE.Color('#9a7458'), side: THREE.DoubleSide,
+  }), [])
+  const shoeGeo = useMemo(() => buildShoe(m), [m])
+  useEffect(() => () => { shoeGeo.dispose() }, [shoeGeo])
+  const bodySkin = human ? humanSkin : skinMat
   useEffect(() => () => { sleeveTube?.geometry.dispose(); collarTube?.geometry.dispose() }, [sleeveTube, collarTube])
   // every mesh casts and receives soft shadows (cloth self-shadowing reads as depth)
   useEffect(() => { rootRef.current?.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true } }) })
@@ -615,25 +636,25 @@ function Scene({ style, body, pose, playing, phase, live, fitMap, skin, hair, si
   return (
     <group ref={rootRef}>
       {/* body */}
-      <mesh geometry={bodyGeo.torso} material={skinMat} />
-      <mesh geometry={bodyGeo.head} material={skinMat} />
+      <mesh geometry={bodyGeo.torso} material={bodySkin} />
+      <mesh geometry={bodyGeo.head} material={human ? faceMat : skinMat} />
       {hairGeo.map((h, i) => <mesh key={i} geometry={h} material={hairMat} />)}
       {([-1, 1] as const).map((s) => (
         <group key={s}>
           <group ref={(g) => { joints.current[s < 0 ? 'thighL' : 'thighR'] = g }} position={[s * m.legOffset, hipY, 0]}>
-            <mesh geometry={bodyGeo.leg.thigh} material={skinMat} />
+            <mesh geometry={bodyGeo.leg.thigh} material={bodySkin} />
             {legTubes.thighG && <mesh geometry={legTubes.thighG.geometry} material={mats.lower} />}
             <group ref={(g) => { joints.current[s < 0 ? 'kneeL' : 'kneeR'] = g }} position={[0, -thighLen, 0]}>
-              <mesh geometry={bodyGeo.leg.shin} material={skinMat} />
+              <mesh geometry={bodyGeo.leg.shin} material={bodySkin} />
               {legTubes.shinG && <mesh geometry={legTubes.shinG.geometry} material={mats.lower} />}
-              <mesh geometry={bodyGeo.leg.foot} material={skinMat} />
+              {human ? <mesh geometry={shoeGeo} material={shoeMat} /> : <mesh geometry={bodyGeo.leg.foot} material={skinMat} />}
             </group>
           </group>
           <group ref={(g) => { joints.current[s < 0 ? 'armL' : 'armR'] = g }} position={[s * m.shoulderJoint.x, m.shoulderJoint.y, 0]}>
-            <mesh geometry={bodyGeo.arm.arm} material={skinMat} />
+            <mesh geometry={bodyGeo.arm.arm} material={bodySkin} />
             <group scale={[s, 1, 1]}>
-              <mesh geometry={bodyGeo.arm.palm} material={skinMat} />
-              <mesh geometry={bodyGeo.arm.thumb} material={skinMat} />
+              <mesh geometry={bodyGeo.arm.palm} material={bodySkin} />
+              <mesh geometry={bodyGeo.arm.thumb} material={bodySkin} />
             </group>
             {sleeveTube && <mesh geometry={sleeveTube.geometry} material={mats.sleeve} />}
           </group>

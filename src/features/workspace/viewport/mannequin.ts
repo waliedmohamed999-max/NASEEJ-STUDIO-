@@ -152,7 +152,7 @@ export function buildTorso(m: BodyModel) {
     const r = torsoRingAt(m, y)
     const s = baseScale(m, y)
     secs.push({
-      p: new THREE.Vector3(0, y, 0), rx: r.rx * s, ry: r.rz * s,
+      p: new THREE.Vector3(0, y, neckLean(m, y)), rx: r.rx * s, ry: r.rz * s,
       // radial modulation relative to the base ellipse
       mod: (th) => {
         const c = Math.cos(th), sn = Math.sin(th)
@@ -180,7 +180,7 @@ export function buildHead(m: BodyModel) {
     const yr = -1.32 + (2.36 * i) / 40
     const w = smoothAt(ys, prof.map((p) => p[1]), yr), d = smoothAt(ys, prof.map((p) => p[2]), yr), f = smoothAt(ys, prof.map((p) => p[3]), yr)
     secs.push({
-      p: new THREE.Vector3(0, c + yr * R, f * R), rx: w * R, ry: d * R,
+      p: new THREE.Vector3(0, c + yr * R, f * R + HEAD_FWD), rx: w * R, ry: d * R,
       mod: (th) => {
         const front = g(wrapD(th, FRONT) / 0.16)
         const nose = 0.13 * g((yr + 0.2) / 0.16) * front * Math.max(0, 1 - (yr + 0.36) * -2)
@@ -191,7 +191,13 @@ export function buildHead(m: BodyModel) {
       },
     })
   }
-  return loft(secs, 64, new THREE.Vector3(0, 0, 1), [true, true])
+  const geo = loft(secs, 64, new THREE.Vector3(0, 0, 1), [true, true])
+  // normalised UVs (u around, v up the head) for the painted face
+  const uv = geo.attributes.uv as THREE.BufferAttribute
+  const nS = 65
+  for (let i = 0; i < secs.length; i++) for (let j = 0; j < nS; j++) uv.setXY(i * nS + j, j / 64, i / (secs.length - 1))
+  uv.needsUpdate = true
+  return geo
 }
 
 /** Arm in arm-local space (joint at origin, pointing −y), including a mitten hand and thumb. */
@@ -259,38 +265,213 @@ export function buildLeg(m: BodyModel) {
   return { thigh, shin, foot, thighLen, hipY }
 }
 
-/** Hair shells sized to the lofted head. */
+/** Head sits slightly forward of the torso axis, as the neck leans forward. */
+export const HEAD_FWD = 0.014
+const neckLean = (m: BodyModel, y: number) => (y > m.y.shoulder ? ((y - m.y.shoulder) / (m.y.chin - m.y.shoulder)) * HEAD_FWD : 0)
+
+/** Hair: scalp cap, a long back mass resting on the back, and two face-framing locks. */
 export function buildHair(m: BodyModel, kind: 'none' | 'bun' | 'bob' | 'long') {
   if (kind === 'none') return []
   const R = m.headR
   const c = m.y.head
+  const F = HEAD_FWD
   const parts: THREE.BufferGeometry[] = []
-  const cap = new THREE.SphereGeometry(1, 56, 32, 0, Math.PI * 2, 0, Math.PI * (kind === 'bun' ? 0.5 : 0.56))
-  cap.scale(R * 0.95, R * 1.1, R * 1.1)
-  cap.rotateX(-0.5)
-  cap.translate(0, c + R * 0.06, -R * 0.07)
+  const cap = new THREE.SphereGeometry(1, 64, 36, 0, Math.PI * 2, 0, Math.PI * (kind === 'bun' ? 0.52 : 0.6))
+  cap.scale(R * 0.94, R * 1.1, R * 1.1)
+  cap.rotateX(-0.55)
+  cap.translate(0, c + R * 0.05, F - R * 0.06)
   parts.push(cap)
   if (kind === 'bun') {
-    const bun = new THREE.SphereGeometry(R * 0.36, 28, 20)
-    bun.scale(1, 0.85, 0.9)
-    bun.translate(0, c + R * 0.62, -R * 0.82)
+    const bun = new THREE.TorusGeometry(R * 0.24, R * 0.16, 16, 40)
+    bun.rotateX(-0.5)
+    bun.translate(0, c + R * 0.55, F - R * 0.92)
     parts.push(bun)
   }
   if (kind === 'bob') {
-    const bob = new THREE.CylinderGeometry(R * 0.95, R * 1.02, R * 1.05, 48, 1, true, Math.PI * 0.6, Math.PI * 1.8)
-    bob.translate(0, c - R * 0.2, -R * 0.05)
-    parts.push(bob)
+    parts.push(loft([
+      { p: new THREE.Vector3(0, c + R * 0.35, F - R * 0.05), rx: R * 0.98, ry: R * 1.05 },
+      { p: new THREE.Vector3(0, c - R * 0.4, F - R * 0.12), rx: R * 1.04, ry: R * 1.0, mod: (th) => -0.35 * Math.exp(-0.5 * (wrapD(th, FRONT) / 0.55) ** 2) },
+      { p: new THREE.Vector3(0, c - R * 1.05, F - R * 0.2), rx: R * 1.08, ry: R * 0.9, mod: (th) => -0.55 * Math.exp(-0.5 * (wrapD(th, FRONT) / 0.6) ** 2) },
+    ], 56, new THREE.Vector3(0, 0, 1), [false, false]))
   }
   if (kind === 'long') {
-    const back = loft([
-      { p: new THREE.Vector3(0, c + R * 0.2, -R * 0.35), rx: R * 0.88, ry: R * 0.62 },
-      { p: new THREE.Vector3(0, c - R * 1.0, -R * 0.62), rx: R * 0.92, ry: R * 0.34 },
-      { p: new THREE.Vector3(0, c - R * 2.6, -R * 0.95), rx: R * 0.8, ry: R * 0.2 },
-      { p: new THREE.Vector3(0, c - R * 3.0, -R * 1.0), rx: R * 0.55, ry: R * 0.12 },
-    ], 40, new THREE.Vector3(0, 0, 1), [false, true])
-    parts.push(back)
+    // back mass follows the back surface (envelope) so it rests on, not inside, the body
+    const backZ = (y: number, ry: number) => {
+      if (y > m.y.shoulder + 0.02 * m.H) return null
+      return -(envelopeRingAt(m, y).rz + ry + 0.016)
+    }
+    const tbl: Array<[number, number, number, number]> = [ // y (in R from c), z default, rx, ry
+      [0.6, -0.42, 0.88, 0.55], [0.1, -0.7, 1.0, 0.46], [-0.7, -0.86, 1.04, 0.34], [-1.5, -1.0, 1.18, 0.24],
+      [-2.4, -1.15, 1.28, 0.2], [-3.4, -1.25, 1.2, 0.16], [-4.2, -1.3, 0.95, 0.12], [-4.6, -1.3, 0.55, 0.07],
+    ]
+    const back: Section[] = tbl.map(([yr, zr, rx, ry], i) => {
+      const y = c + yr * R
+      const z = backZ(y, ry * R)
+      return {
+        p: new THREE.Vector3(0, y, z ?? F + zr * R), rx: rx * R, ry: ry * R,
+        // gentle waves along the length
+        mod: (th) => 0.04 * Math.sin(th * 9 + i * 1.3) * (i / tbl.length),
+      }
+    })
+    parts.push(loft(back, 64, new THREE.Vector3(0, 0, 1), [false, true]))
+    for (const sx of [-1, 1]) {
+      const frontZ = (y: number, ry: number) => envelopeRingAt(m, y).rz + ry + 0.018
+      // a broad, flat sheet of hair framing the face and falling over the front of the shoulder
+      const lock: Section[] = [
+        { p: new THREE.Vector3(sx * R * 0.78, c + R * 0.35, F - R * 0.1), rx: R * 0.42, ry: R * 0.2 },
+        { p: new THREE.Vector3(sx * R * 0.9, c - R * 0.5, F - R * 0.12), rx: R * 0.46, ry: R * 0.15 },
+        { p: new THREE.Vector3(sx * R * 1.02, c - R * 1.35, F - R * 0.05), rx: R * 0.5, ry: R * 0.11 },
+        { p: new THREE.Vector3(sx * R * 1.12, c - R * 2.15, frontZ(c - R * 2.15, R * 0.08) - R * 0.1), rx: R * 0.52, ry: R * 0.08 },
+        { p: new THREE.Vector3(sx * R * 1.16, c - R * 3.0, frontZ(c - R * 3.0, R * 0.07)), rx: R * 0.46, ry: R * 0.07 },
+        { p: new THREE.Vector3(sx * R * 1.14, c - R * 3.6, frontZ(c - R * 3.6, R * 0.05)), rx: R * 0.3, ry: R * 0.05 },
+        { p: new THREE.Vector3(sx * R * 1.1, c - R * 3.9, frontZ(c - R * 3.9, R * 0.03)), rx: R * 0.1, ry: R * 0.03 },
+      ]
+      parts.push(loft(lock, 24, new THREE.Vector3(0, 0, 1), [false, true]))
+    }
   }
   return parts
+}
+
+/** Shoe: the foot loft, slightly larger, as a pointed ballet flat. */
+export function buildShoe(m: BodyModel) {
+  const ground = -m.y.knee
+  const tbl: Array<[number, number, number, number]> = [
+    [-0.06, 0.024, 0.02, 0.022], [-0.05, 0.034, 0.03, 0.03], [-0.01, 0.037, 0.03, 0.03], [0.04, 0.043, 0.026, 0.024],
+    [0.09, 0.047, 0.02, 0.018], [0.135, 0.038, 0.014, 0.013], [0.17, 0.016, 0.008, 0.01],
+  ]
+  return loft(tbl.map(([z, w, h, yc]) => ({ p: new THREE.Vector3(0, ground + yc, z), rx: w, ry: h })), 28, new THREE.Vector3(0, 1, 0), [true, true])
+}
+
+/* ------------------------------------------------------------------ */
+/* Painted face & hair strands (canvas textures, no image assets)      */
+/* ------------------------------------------------------------------ */
+const faceCache = new Map<string, THREE.CanvasTexture>()
+/**
+ * Face texture for the lofted head. UV: u = angle around (front = 0.5), v = height.
+ * Feature positions come from the head profile (eyes at yRel 0.02, brows 0.2,
+ * nose −0.25, lips −0.6 → v = (yRel + 1.32) / 2.36).
+ */
+export function faceTexture(skin: string) {
+  const hit = faceCache.get(skin)
+  if (hit) return hit
+  const W = 1024, Hh = 512
+  const cv = document.createElement('canvas')
+  cv.width = W; cv.height = Hh
+  const x = cv.getContext('2d')!
+  const Y = (yRel: number) => (1 - (yRel + 1.32) / 2.36) * Hh
+  const cx = W / 2
+  x.fillStyle = skin
+  x.fillRect(0, 0, W, Hh)
+  const shade = (c: string, a: number) => { x.globalAlpha = a; x.fillStyle = c }
+  const radial = (px: number, py: number, rx: number, ry: number, col: string, a: number) => {
+    x.save(); x.translate(px, py); x.scale(rx, ry)
+    const g = x.createRadialGradient(0, 0, 0, 0, 0, 1)
+    g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)')
+    x.globalAlpha = a; x.fillStyle = g; x.beginPath(); x.arc(0, 0, 1, 0, Math.PI * 2); x.fill(); x.restore()
+  }
+  // soft contouring: cheeks, eye sockets, nose sides, under-lip, jaw
+  for (const s of [-1, 1]) {
+    radial(cx + s * 118, Y(-0.3), 70, 42, '#e0857a', 0.28)                 // blush
+    radial(cx + s * 70, Y(0.06), 64, 30, '#6b4434', 0.2)                   // eye socket
+    radial(cx + s * 22, Y(-0.18), 12, 40, '#7a4d3a', 0.14)                 // nose side
+    radial(cx + s * 200, Y(-0.55), 90, 120, '#6b4434', 0.12)               // jaw / temple
+  }
+  radial(cx, Y(-0.74), 40, 14, '#6b4434', 0.18)                           // under lower lip
+  radial(cx, Y(-0.28), 18, 10, '#ffffff', 0.18)                           // nose tip highlight
+  // eyes
+  for (const s of [-1, 1]) {
+    const ex = cx + s * 70, ey = Y(0.02)
+    x.save()
+    x.beginPath()
+    x.moveTo(ex - 36, ey + 2)
+    x.quadraticCurveTo(ex - 4 * s, ey - 22, ex + 36, ey - 1)
+    x.quadraticCurveTo(ex + 2 * s, ey + 16, ex - 36, ey + 2)
+    x.closePath()
+    x.clip()
+    shade('#f4ece6', 1); x.fillRect(ex - 40, ey - 30, 80, 60)
+    const iris = x.createRadialGradient(ex, ey - 2, 2, ex, ey - 2, 15)
+    iris.addColorStop(0, '#2a170d'); iris.addColorStop(0.35, '#5a3a22'); iris.addColorStop(0.9, '#3b2414'); iris.addColorStop(1, '#1a0f08')
+    x.globalAlpha = 1; x.fillStyle = iris; x.beginPath(); x.arc(ex, ey - 2, 15, 0, Math.PI * 2); x.fill()
+    shade('#080504', 1); x.beginPath(); x.arc(ex, ey - 2, 6, 0, Math.PI * 2); x.fill()
+    shade('#ffffff', 0.9); x.beginPath(); x.arc(ex + 5, ey - 8, 3, 0, Math.PI * 2); x.fill()
+    shade('#000000', 0.18); x.fillRect(ex - 40, ey - 30, 80, 14) // lid shadow on the eyeball
+    x.restore()
+    // upper lid line + lashes
+    x.globalAlpha = 0.95; x.strokeStyle = '#1b120d'; x.lineWidth = 4; x.lineCap = 'round'
+    x.beginPath(); x.moveTo(ex - 37, ey + 2); x.quadraticCurveTo(ex - 4 * s, ey - 23, ex + 38, ey - 2); x.stroke()
+    x.lineWidth = 1.6
+    for (let k = 0; k <= 9; k++) {
+      const t = k / 9
+      const px = ex - 34 + t * 70, py = ey - 1 - Math.sin(t * Math.PI) * 18
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + (t - 0.3) * 10 + 3 * s, py - 7 - Math.sin(t * Math.PI) * 3); x.stroke()
+    }
+    // crease above the lid
+    x.globalAlpha = 0.25; x.lineWidth = 2; x.strokeStyle = '#6b4434'
+    x.beginPath(); x.moveTo(ex - 30, ey - 12); x.quadraticCurveTo(ex, ey - 32, ex + 34, ey - 14); x.stroke()
+    // eyebrow: tapered strokes
+    const by = Y(0.21)
+    x.globalAlpha = 0.85; x.strokeStyle = '#3a2618'
+    for (let k = 0; k < 26; k++) {
+      const t = k / 25
+      const dx = (t - 0.5) * 96 * s // inner (thick) → outer (thin)
+      const bx = ex + dx
+      const arch = -Math.sin(Math.min(1, t * 1.4) * Math.PI * 0.85) * 11
+      x.lineWidth = 4.5 * (1 - t * 0.7)
+      x.beginPath(); x.moveTo(bx, by + arch + 4); x.lineTo(bx + 6 * s, by + arch - 2); x.stroke()
+    }
+  }
+  // lips
+  const ly = Y(-0.6)
+  const lip = x.createLinearGradient(0, ly - 22, 0, ly + 22)
+  lip.addColorStop(0, '#b45f5a'); lip.addColorStop(0.45, '#9e4b49'); lip.addColorStop(0.55, '#7d3536'); lip.addColorStop(1, '#c0716a')
+  x.globalAlpha = 0.92; x.fillStyle = lip
+  x.beginPath()
+  x.moveTo(cx - 58, ly)
+  x.bezierCurveTo(cx - 34, ly - 14, cx - 14, ly - 22, cx, ly - 13)
+  x.bezierCurveTo(cx + 14, ly - 22, cx + 34, ly - 14, cx + 58, ly)
+  x.bezierCurveTo(cx + 34, ly + 22, cx - 34, ly + 22, cx - 58, ly)
+  x.fill()
+  x.globalAlpha = 0.55; x.strokeStyle = '#5c2627'; x.lineWidth = 2.5
+  x.beginPath(); x.moveTo(cx - 56, ly); x.quadraticCurveTo(cx, ly + 4, cx + 56, ly); x.stroke()
+  radial(cx - 10, ly + 9, 18, 5, '#ffffff', 0.25)
+  x.globalAlpha = 1
+  const tex = new THREE.CanvasTexture(cv)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.anisotropy = 8
+  faceCache.set(skin, tex)
+  return tex
+}
+
+const hairCache = new Map<string, THREE.CanvasTexture>()
+/** Vertical strand texture with root-to-tip tonal variation. */
+export function hairTexture(base: string) {
+  const hit = hairCache.get(base)
+  if (hit) return hit
+  const W = 512, H = 512
+  const cv = document.createElement('canvas')
+  cv.width = W; cv.height = H
+  const x = cv.getContext('2d')!
+  x.fillStyle = base
+  x.fillRect(0, 0, W, H)
+  let seed = 7
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+  for (let i = 0; i < 2600; i++) {
+    const px = rnd() * W
+    const light = rnd() > 0.55
+    x.strokeStyle = light ? 'rgba(160,120,90,0.22)' : 'rgba(10,6,4,0.28)'
+    x.lineWidth = 0.6 + rnd() * 1.4
+    x.beginPath()
+    x.moveTo(px, -10)
+    x.bezierCurveTo(px + (rnd() - 0.5) * 18, H * 0.33, px + (rnd() - 0.5) * 18, H * 0.66, px + (rnd() - 0.5) * 10, H + 10)
+    x.stroke()
+  }
+  const tex = new THREE.CanvasTexture(cv)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping
+  tex.repeat.set(3, 1)
+  tex.anisotropy = 8
+  hairCache.set(base, tex)
+  return tex
 }
 
 /* ------------------------------------------------------------------ */
