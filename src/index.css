@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- Design tokens ---------- */
+:root {
+  --background: #f7f4ee;      /* ivory */
+  --surface: #fcfaf6;
+  --muted: #efebe3;
+  --foreground: #1a1a1a;      /* charcoal */
+  --muted-foreground: #6e6a63;
+  --border: #e3ddd2;
+  --accent: #b08d57;          /* camel — fills, rules, focus */
+  --accent-ink: #7f6235;      /* camel deep enough for text on ivory (4.9:1) */
+  --accent-soft: #efe6d6;
+  --accent-foreground: #1a1a1a;
+  --ring: #b08d57;
+  --canvas: #f7f4ee;          /* studio cutting table */
+  --grid: rgba(26, 26, 26, 0.06);
+  --grid-strong: rgba(26, 26, 26, 0.12);
+  --fit-tight: #d64545;
+  --fit-good: #3f9a62;
+  --fit-loose: #3b6fd1;
+  --font-serif: "Cormorant Garamond", "Noto Naskh Arabic", Georgia, serif;
+  --font-sans: "Inter", "IBM Plex Sans Arabic", system-ui, sans-serif;
+}
+
+.dark {
+  /* dim atelier */
+  --background: #121212;
+  --surface: #1a1918;
+  --muted: #232120;
+  --foreground: #ebe6dd;
+  --muted-foreground: #9d968c;
+  --border: #2e2b28;
+  --accent: #c4a06a;
+  --accent-ink: #d4b47f;
+  --accent-soft: #2e271c;
+  --accent-foreground: #121212;
+  --ring: #c4a06a;
+  --canvas: #171615;
+  --grid: rgba(235, 230, 221, 0.05);
+  --grid-strong: rgba(235, 230, 221, 0.1);
+}
+
+/* Arabic: swap the type pairing, keep the hierarchy */
+:root[lang="ar"] {
+  --font-serif: "Noto Naskh Arabic", "Cormorant Garamond", serif;
+  --font-sans: "IBM Plex Sans Arabic", "Inter", system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-canvas: var(--canvas);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+  --color-fit-tight: var(--fit-tight);
+  --color-fit-good: var(--fit-good);
+  --color-fit-loose: var(--fit-loose);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.5s ease both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, .font-display { font-family: var(--font-serif); font-weight: 500; letter-spacing: -0.01em; }
+  :root[lang="ar"] h1, :root[lang="ar"] h2, :root[lang="ar"] h3 { letter-spacing: 0; line-height: 1.35; }
+  ::selection { background: var(--accent-soft); color: var(--foreground); }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+}
+
+@layer components {
+  .eyebrow {
+    font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted-foreground); font-weight: 500;
+  }
+  :root[lang="ar"] .eyebrow { letter-spacing: 0; font-size: 0.8rem; }
+  .container-x { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1rem; }
+  @media (min-width: 768px) { .container-x { padding-inline: 2rem; } }
+  .hairline { border-color: var(--border); }
+  .num { font-variant-numeric: tabular-nums; }
+}
+
+/* Reveal-on-scroll (see useReveal) */
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1); }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* Thin scrollbars inside tool panels */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+/* ------------------------------------------------------------------ */
+/* Atelier workspace: dense desktop-software controls                  */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .menu-panel {
+    z-index: 70; min-width: 13rem; padding: 4px; border-radius: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.22); font-size: 12px;
+    animation: fade-in .12s ease both;
+  }
+  .menu-item {
+    display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 4px;
+    cursor: default; outline: none; user-select: none; color: var(--foreground);
+  }
+  .menu-item[data-highlighted], .menu-item[data-state="open"] { background: var(--muted); }
+  .menu-item[data-disabled] { opacity: .4; }
+  .ws-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+    border-radius: 5px; color: var(--muted-foreground); transition: background .15s, color .15s;
+  }
+  .ws-icon-btn:hover { background: color-mix(in oklab, var(--foreground) 6%, transparent); color: var(--foreground); }
+  .ws-icon-btn[aria-pressed="true"], .ws-icon-btn[data-active="true"] { background: var(--foreground); color: var(--background); }
+  .ws-input {
+    height: 26px; width: 100%; border-radius: 4px; border: 1px solid var(--border); background: var(--background);
+    padding: 0 6px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--foreground);
+  }
+  .ws-input:focus { outline: none; border-color: var(--accent); }
+  .ws-label { font-size: 11px; color: var(--muted-foreground); }
+  .ws-section { border-bottom: 1px solid var(--border); padding: 12px 14px; }
+  .ws-section-title {
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted-foreground);
+    font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  :root[lang="ar"] .ws-section-title { letter-spacing: 0; font-size: 11px; }
+  .ws-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 26px; padding: 0 10px;
+    border-radius: 4px; border: 1px solid var(--border); font-size: 12px; background: var(--background); color: var(--foreground);
+  }
+  .ws-btn:hover { border-color: color-mix(in oklab, var(--foreground) 35%, transparent); }
+  .ws-btn[data-variant="solid"] { background: var(--foreground); color: var(--background); border-color: var(--foreground); }
+  .ws-btn[data-variant="accent"] { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
+  .ws-btn:disabled { opacity: .45; pointer-events: none; }
+  .ws-btn svg { width: 14px; height: 14px; }
+  .ws-pane-title {
+    position: absolute; inset-inline-start: 10px; top: 8px; z-index: 5; font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted-foreground); pointer-events: none;
+  }
+  :root[lang="ar"] .ws-pane-title { letter-spacing: 0; font-size: 11px; }
+}
+
+/* Tech pack / lookbook printing: A4 landscape, only the print pages */
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  html, body { background: #fff !important; }
+  #root { display: none !important; }
+  .print-root { position: static !important; overflow: visible !important; background: #fff !important; }
+  .print-root > div { padding: 0 !important; gap: 0 !important; }
+  .no-print { display: none !important; }
+  .print-page { box-shadow: none !important; break-after: page; page-break-after: always; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

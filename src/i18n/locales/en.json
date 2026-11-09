@@ -1,0 +1,153 @@
+{
+  "brand": { "name": "NASEEJ STUDIO", "tagline": "From Fiber to Fit" },
+  "nav": {
+    "studio": "Design Studio", "fabrics": "Fabric Library", "tryon": "Virtual Try-On",
+    "academy": "Academy", "marketplace": "Marketplace", "community": "Community",
+    "pricing": "Pricing", "dashboard": "Dashboard", "signIn": "Sign in",
+    "startFree": "Start Designing Free", "menu": "Menu", "close": "Close",
+    "language": "Language", "theme": "Toggle dark mode", "api": "Try-On API"
+  },
+  "common": {
+    "save": "Save", "saved": "Saved", "cancel": "Cancel", "reset": "Reset", "export": "Export",
+    "search": "Search", "clear": "Clear all", "compare": "Compare", "remove": "Remove",
+    "add": "Add", "apply": "Apply", "close": "Close", "perMeter": "/ m", "meters": "m",
+    "cm": "cm", "kg": "kg", "of": "of", "results": "{{n}} fabrics", "seeAll": "See all",
+    "comingSoon": "Coming in the next release", "back": "Back", "learnMore": "Learn more",
+    "undo": "Undo", "redo": "Redo", "size": "Size", "new": "New", "open": "Open", "delete": "Delete"
+  },
+  "landing": {
+    "heroEyebrow": "Design · Engineer · Try on",
+    "heroTitle": "From fiber <em>to fit</em>, in one studio.",
+    "heroBody": "Sketch garments with real fabrics, read their engineering, and see them move on a body — before a single metre is cut.",
+    "heroCta": "Start Designing Free", "heroSecondary": "Explore the fabric library",
+    "demoLabel": "Live try-on preview", "demoFabric": "Fabric", "demoHint": "Drag to rotate",
+    "trustedBy": "Built for designers, engineers, students and brands across 40+ countries",
+    "modulesEyebrow": "The platform", "modulesTitle": "Eight tools, one thread.",
+    "modules": {
+      "studio": { "title": "Design Studio", "body": "Garment templates, real fabrics, prints, layers and an automatic tech pack with fabric consumption." },
+      "fabrics": { "title": "Fabric Library", "body": "Engineering-grade specs — GSM, weave, stretch, drape, shrinkage, sustainability — and side-by-side compare." },
+      "tryon": { "title": "Virtual Try-On", "body": "3D avatars from your measurements, fabric-aware drape and a fit heatmap with size recommendation." },
+      "academy": { "title": "Textile Academy", "body": "Courses on fibers, weaving, dyeing and testing, plus calculators engineers actually use." },
+      "marketplace": { "title": "Marketplace", "body": "Verified mills and manufacturers. Request swatches, quotes and talk directly." },
+      "community": { "title": "Community", "body": "Portfolios, monthly challenges and a Virtual Fashion Week gallery." }
+    },
+    "techEyebrow": "Engineering inside", "techTitle": "Every swatch carries its data.",
+    "techBody": "Fabrics aren't pictures here. Each one carries fiber composition, weight, construction, stretch and drape, and those numbers drive the tech pack, the fabric estimate and how the cloth falls on the avatar.",
+    "stats": { "fabrics": "Engineered fabrics", "suppliers": "Verified suppliers", "garments": "Garment templates", "calculators": "Textile calculators" },
+    "pricingEyebrow": "Pricing", "pricingTitle": "Start free. Scale when you sell.",
+    "monthly": "/ month", "popular": "Most popular",
+    "plans": {
+      "free": { "name": "Free", "for": "For students", "price": "$0", "cta": "Start free",
+        "features": ["3 active projects", "Full fabric library", "3D avatar try-on", "Academy & calculators"] },
+      "pro": { "name": "Pro", "for": "For designers", "price": "$19", "cta": "Go Pro",
+        "features": ["Unlimited projects", "PDF tech packs", "Photo try-on (50 / mo)", "Sample & quote requests", "Portfolio page"] },
+      "studio": { "name": "Studio", "for": "For brands", "price": "$79", "cta": "Talk to us",
+        "features": ["5 seats & shared library", "AR mirror & photo try-on (500 / mo)", "Private supplier rooms", "Brand fabric uploads", "Priority support"] }
+    },
+    "apiTitle": "Try-On API for e-commerce",
+    "apiBody": "Embed the NASEEJ fit engine in your Shopify or WooCommerce store. Shoppers see the fit before they buy.",
+    "apiCta": "See the API",
+    "testimonialsEyebrow": "Voices", "testimonialsTitle": "What our users say",
+    "testimonials": [
+      { "quote": "I finally understand why my crepe dress hangs differently from the sample. Seeing the drape on the avatar saved me two rounds of toiles.", "name": "Layla Haddad", "role": "Womenswear designer, Beirut" },
+      { "quote": "The consumption estimate lands within 4% of our marker room. For costing on day one, that's all we need.", "name": "Tomás Ferreira", "role": "Production lead, Porto" },
+      { "quote": "My students use the yarn-count converter and the weave lessons every week. It feels like a lab in the browser.", "name": "Dr. Amina Yusuf", "role": "Textile engineering lecturer, Cairo" }
+    ],
+    "ctaTitle": "Your next collection starts with a thread.",
+    "ctaBody": "Free for students. No card required.",
+    "footer": { "product": "Product", "company": "Company", "about": "About", "careers": "Careers", "contact": "Contact", "legal": "Legal", "privacy": "Privacy", "terms": "Terms", "rights": "All rights reserved." }
+  },
+  "fabrics": {
+    "eyebrow": "Fabric Library", "title": "Materials, with the engineering attached.",
+    "subtitle": "Filter by fiber, weight, construction or season. Pick up to four to compare side by side.",
+    "searchPlaceholder": "Search fabrics, fibers, suppliers…",
+    "filters": "Filters", "fiber": "Fiber", "weight": "Weight (GSM)", "construction": "Construction",
+    "season": "Season", "sustainability": "Min. sustainability", "price": "Max. price / m",
+    "sort": "Sort", "sortOptions": { "featured": "Featured", "priceAsc": "Price: low to high", "priceDesc": "Price: high to low", "gsmAsc": "Lightest first", "sustainDesc": "Most sustainable" },
+    "weightBands": { "light": "Light < 150", "medium": "Medium 150–300", "heavy": "Heavy > 300" },
+    "noResults": "No fabrics match these filters.",
+    "compareBar": "{{count}} selected", "compareCta": "Compare side by side", "compareMax": "You can compare up to 4 fabrics",
+    "addCompare": "Add to compare", "inCompare": "In compare",
+    "useInStudio": "Use in Design Studio", "tryOn": "Try on avatar", "requestSample": "Request sample",
+    "specs": {
+      "composition": "Composition", "gsm": "Weight", "construction": "Construction", "width": "Width",
+      "stretch": "Stretch", "drape": "Drape", "breathability": "Breathability", "shrinkage": "Shrinkage",
+      "care": "Care", "sustainability": "Sustainability", "origin": "Origin", "supplier": "Supplier",
+      "price": "Price", "seasons": "Seasons", "certifications": "Certifications"
+    },
+    "drapeLevels": ["Structured", "Crisp", "Balanced", "Fluid", "Liquid"],
+    "levels": ["Very low", "Low", "Medium", "High", "Very high"],
+    "compareTitle": "Compare fabrics", "compareEmpty": "Add fabrics to compare from the library."
+  },
+  "fiber": {
+    "cotton": "Cotton", "linen": "Linen", "silk": "Silk", "wool": "Wool", "polyester": "Polyester",
+    "viscose": "Viscose", "elastane": "Elastane", "nylon": "Nylon", "cashmere": "Cashmere",
+    "lyocell": "Lyocell", "acetate": "Acetate", "hemp": "Hemp", "modal": "Modal"
+  },
+  "construction": {
+    "plain": "Plain weave", "twill": "Twill", "satin": "Satin", "crepe": "Crepe", "jersey": "Single jersey",
+    "rib": "Rib knit", "tweed": "Tweed", "chiffon": "Chiffon", "velvet": "Velvet", "jacquard": "Jacquard"
+  },
+  "season": { "spring": "Spring", "summer": "Summer", "autumn": "Autumn", "winter": "Winter" },
+  "care": {
+    "wash30": "Machine wash 30 °C", "wash40": "Machine wash 40 °C", "wash60": "Machine wash 60 °C",
+    "handwash": "Hand wash", "dryclean": "Dry clean", "noBleach": "Do not bleach", "ironLow": "Iron low",
+    "ironMedium": "Iron medium", "ironHigh": "Iron high", "noTumble": "Do not tumble dry",
+    "tumbleLow": "Tumble dry low", "lineDry": "Line dry", "flatDry": "Dry flat"
+  },
+  "print": {
+    "none": "Solid", "stripes": "Stripes", "checks": "Checks", "dots": "Polka dots",
+    "houndstooth": "Houndstooth", "floral": "Floral", "geometric": "Geometric"
+  },
+  "studio": {
+    "title": "Design Studio", "untitled": "Untitled design", "garment": "Garment", "layers": "Layers",
+    "fabric": "Fabric", "color": "Colour", "resetColor": "Use fabric colour", "print": "Print",
+    "printColor": "Print colour", "scale": "Scale", "rotation": "Rotation", "applyAll": "Apply to all pieces",
+    "techPack": "Tech pack", "measurements": "Measurements", "fabricSpecs": "Fabric specs",
+    "consumption": "Estimated fabric consumption", "total": "Total", "perPiece": "Per piece",
+    "exportPng": "Export PNG", "exportPdf": "Export PDF tech sheet", "saveProject": "Save project",
+    "projects": "My projects", "noProjects": "No saved projects yet.", "projectName": "Project name",
+    "hidden": "Hidden", "toggleVisibility": "Toggle visibility", "lock": "Lock layer",
+    "selectPiece": "Select a piece on the canvas or in the layers panel.",
+    "consumptionNote": "Estimate at {{width}} cm usable width incl. shrinkage, one-way layout, pattern repeat and 5% cutting loss.",
+    "estCost": "Fabric cost", "zoom": "Zoom", "fit": "Fit", "showDetails": "Stitch lines",
+    "tryOnThis": "Try this on the avatar", "savedToast": "Project saved", "exported": "Exported",
+    "panels": { "design": "Design", "pack": "Tech pack" },
+    "pdf": { "title": "Technical Specification Sheet", "style": "Style", "date": "Date", "size": "Base size", "piece": "Piece", "fabricCol": "Fabric", "metres": "Metres", "notes": "Notes" }
+  },
+  "tryon": {
+    "title": "Virtual Try-On", "subtitle": "See how fabric and fit behave on a body before you cut.",
+    "modes": { "avatar": "3D Avatar", "photo": "Photo Try-On", "ar": "AR Mirror" },
+    "body": "Your measurements", "height": "Height", "weight": "Weight", "bust": "Bust", "waist": "Waist", "hips": "Hips",
+    "shape": "Body shape",
+    "shapes": { "hourglass": "Hourglass", "pear": "Pear", "apple": "Apple", "rectangle": "Rectangle", "invertedTriangle": "Inverted triangle" },
+    "garment": "Garment", "fabric": "Fabric", "size": "Size", "heatmap": "Fit heatmap", "autoRotate": "Auto-rotate",
+    "recommended": "Recommended size", "recommendedBody": "Based on your measurements and the fabric's stretch.",
+    "fit": { "tight": "Tight", "good": "Good fit", "loose": "Loose" },
+    "ease": "Ease", "zones": { "bust": "Bust", "waist": "Waist", "hips": "Hips" },
+    "fabricBehaviour": "Fabric behaviour", "drapeNote": "{{fabric}} — drape {{drape}}/5, stretch {{stretch}}%.",
+    "saveLook": "Save look", "share": "Share", "linkCopied": "Link copied", "compare": "Compare outfits",
+    "compareA": "Look A", "compareB": "Look B", "savedLooks": "Saved looks", "noLooks": "No saved looks yet.",
+    "lookSaved": "Look saved", "dragHint": "Drag to rotate · scroll to zoom",
+    "photo": {
+      "title": "Photo Try-On", "body": "Upload a full-body photo, choose a garment and the AI provider renders it on you.",
+      "upload": "Upload photo", "generate": "Generate try-on", "generating": "Rendering…",
+      "mockNote": "Demo provider: a stylised overlay stands in until a try-on AI provider is configured.", "privacy": "Photos are processed in your browser by the demo provider and never uploaded."
+    },
+    "ar": {
+      "title": "AR Mirror", "body": "A live webcam view with the garment tracked to your pose (MediaPipe).",
+      "start": "Start camera", "stop": "Stop camera", "denied": "Camera access was denied or is unavailable.",
+      "note": "Pose tracking ships in the next release. The camera preview works today."
+    }
+  },
+  "placeholder": {
+    "academy": "Courses on fibers, yarns, weaving, knitting, dyeing, finishing, testing and sustainability, with interactive calculators.",
+    "marketplace": "Supplier and manufacturer profiles with MOQ, certifications, sample and quote requests, and messaging.",
+    "community": "Designer portfolios, follows, likes and comments, monthly challenges and the Virtual Fashion Week gallery.",
+    "dashboard": "Your projects, saved fabrics, saved looks, orders and quotes, and your subscription.",
+    "api": "An embeddable try-on widget and REST API for Shopify and WooCommerce stores.",
+    "preview": "Preview from the seed data",
+    "lessons": "{{count}} lessons", "moq": "MOQ {{count}} m", "lead": "{{count}}-day lead time"
+  },
+  "notFound": { "title": "This thread came loose.", "body": "We couldn't find that page.", "home": "Back to home" }
+}
