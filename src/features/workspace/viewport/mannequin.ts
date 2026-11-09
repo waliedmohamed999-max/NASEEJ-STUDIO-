@@ -44,7 +44,22 @@ export function torsoRadius(m: BodyModel, y: number, th: number) {
 }
 
 /** Smallest ellipse containing the modulated torso at height y (for cloth & garment fitting). */
+/** When a real (imported) avatar is active, its measured body replaces the procedural envelope. */
+let envelopeOverride: ((y: number) => Ring | null) | null = null
+export function setEnvelopeOverride(fn: ((y: number) => Ring | null) | null) { envelopeOverride = fn }
+
+export function proceduralEnvelopeAt(m: BodyModel, y: number): Ring {
+  return envelopeOverride ? withoutOverride(() => envelopeRingAt(m, y)) : envelopeRingAt(m, y)
+}
+function withoutOverride<T>(fn: () => T): T {
+  const o = envelopeOverride
+  envelopeOverride = null
+  try { return fn() } finally { envelopeOverride = o }
+}
+
 export function envelopeRingAt(m: BodyModel, y: number): Ring {
+  const o = envelopeOverride?.(y)
+  if (o) return o
   let rx = 0, rz = 0
   const rs: number[] = []
   for (let k = 0; k < 72; k++) {

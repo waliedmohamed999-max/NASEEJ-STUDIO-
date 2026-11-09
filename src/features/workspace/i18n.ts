@@ -74,6 +74,8 @@ const en = {
     hairs: { none: 'None', bun: 'Bun', bob: 'Bob', long: 'Long' },
     views: { front: 'Front', back: 'Back', side: 'Side', three: '¾', detail: 'Detail' },
     legendStrain: 'Strain', legendPressure: 'Pressure',
+    upload: 'Real avatar (.glb)', builtIn: 'Back to built-in figure', flip: 'Turn 180°',
+    avatarHint: 'Upload a realistic human model (.glb/.gltf, unclothed or underwear, A-pose). The dress is fitted and simulated on its measured body.',
   },
   status_bar: { saved: 'Autosaved {{t}}', saving: 'Unsaved changes', zoom: 'Zoom', units: 'Units', selection: 'Selection', size: 'Size' },
   gallery: {
@@ -172,6 +174,8 @@ const ar: Dict = {
     hairs: { none: 'بدون', bun: 'كعكة', bob: 'قصير', long: 'طويل' },
     views: { front: 'أمام', back: 'خلف', side: 'جانب', three: '¾', detail: 'تفصيل' },
     legendStrain: 'الشد', legendPressure: 'الضغط',
+    upload: 'مجسّم حقيقي (.glb)', builtIn: 'العودة للمجسّم المدمج', flip: 'تدوير ١٨٠°',
+    avatarHint: 'ارفع مجسّمًا بشريًا واقعيًا (.glb/.gltf، بدون ملابس أو بملابس داخلية، وضعية A). يُقاس جسمه ويُلبس الثوب ويُحاكى عليه.',
   },
   status_bar: { saved: 'حُفظ تلقائيًا {{t}}', saving: 'تغييرات غير محفوظة', zoom: 'التكبير', units: 'الوحدات', selection: 'التحديد', size: 'المقاس' },
   gallery: {

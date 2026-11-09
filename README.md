@@ -36,6 +36,8 @@ Full-screen pattern-to-3D workspace in `src/features/workspace/`:
 - **panels/** — template gallery, trims, colourways, moodboard, collection planner.
 - **output/** — DXF (AAMA layers), 1:1 tiled PDF, PNG/4K, WebM turntable, and bilingual HTML tech pack + lookbook printed to PDF.
 
+**Real human avatars:** in the 3D pane, upload any realistic human model (.glb/.gltf — e.g. exported from MakeHuman/MPFB, Character Creator or Daz; unclothed or underwear, facing +Z). It is scaled to the size's height, arms are brought from T-pose to A-pose through its skeleton, and its surface is sliced into 1 cm cross-sections whose envelope drives garment fitting and cloth collision. The file is kept in IndexedDB. Imported avatars are static (poses apply to the built-in figure).
+
 Old Design Studio projects are migrated automatically on first open. Press **?** in the workspace for all shortcuts.
 
 **Known limits:** the 3D garment is a single shell sized from pattern girths (pieces are not stitched together in 3D as in CLO/Browzwear); only the body/skirt shell is simulated (no self-collision); grading is proportional rather than per-point rules; DXF holds the base size only (no .RUL); turntable video is WebM.

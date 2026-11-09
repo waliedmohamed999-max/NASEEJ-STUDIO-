@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ContactShadows, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
-import { Pause, Play, RotateCw, Sparkles, Undo2, Bookmark } from 'lucide-react'
+import { Pause, Play, RotateCw, Sparkles, Undo2, Bookmark, UserRound, X, FlipHorizontal2 } from 'lucide-react'
 import { fabricById } from '@/data/fabrics'
 import { cn } from '@/lib/utils'
 import { toast } from '@/stores/ui'
@@ -18,6 +18,10 @@ import type { Style } from '../model/types'
 import { buildGarment3D, easeColor, strainColor, pressureColor, LEGENDS, type Garment3D } from './garment3d'
 import { buildArm, buildHair, buildHead, buildLeg, buildShoe, buildTorso, envelopeRingAt, faceTexture, hairTexture, normalMapFor, shadeBackFaces } from './mannequin'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { setEnvelopeOverride } from './mannequin'
+import type { Ring } from '@/features/tryon/avatarModel'
+import { CustomAvatar } from './CustomAvatar'
+import { useAvatar, saveAvatar, restoreAvatar, clearAvatar, setAvatarFlip } from './avatarStore'
 import { registerViewport } from './simApi'
 
 /* ------------------------------------------------------------------ */
@@ -141,6 +145,9 @@ export default function Viewport3D() {
   const simCmd = useRef<{ run: number; reset: number }>({ run: 0, reset: 0 })
   const [, force] = useState(0)
 
+  useEffect(() => { restoreAvatar() }, [])
+  const avatar = useAvatar()
+  const fileRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     registerViewport({
       run: () => { simCmd.current.run++; force((n) => n + 1) },
@@ -190,6 +197,18 @@ export default function Viewport3D() {
           options={(['off', 'strain', 'pressure', 'ease'] as const).map((v) => [v, t(`sim.maps.${v}`)])} />
         <MiniSelect label={t('sim.hair')} value={w.hair} onChange={(v) => w.set({ hair: v as typeof w.hair })}
           options={(['none', 'bun', 'bob', 'long'] as const).map((v) => [v, t(`sim.hairs.${v}`)])} />
+        <span className="flex items-center gap-1 rounded border border-border bg-background/80 px-1 py-0.5 text-foreground">
+          <button className="flex items-center gap-1" onClick={() => fileRef.current?.click()} title={t('sim.avatarHint')}>
+            <UserRound className="size-3.5" />{avatar.loading ? '…' : avatar.name ? avatar.name.slice(0, 18) : t('sim.upload')}
+          </button>
+          {avatar.url && <>
+            <button className="ws-icon-btn !size-5" onClick={() => setAvatarFlip(!avatar.flip)} title={t('sim.flip')} aria-label={t('sim.flip')}><FlipHorizontal2 className="size-3" /></button>
+            <button className="ws-icon-btn !size-5" onClick={() => clearAvatar()} title={t('sim.builtIn')} aria-label={t('sim.builtIn')}><X className="size-3" /></button>
+          </>}
+          <input ref={fileRef} type="file" accept=".glb,.gltf,model/gltf-binary" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) saveAvatar(f).catch((err) => toast(String(err))); e.target.value = '' }} />
+        </span>
+        {avatar.error && <span className="rounded bg-fit-tight/90 px-1.5 py-0.5 text-white">{avatar.error.slice(0, 80)}</span>}
         <span className="flex items-center gap-0.5 rounded border border-border bg-background/80 px-1 py-0.5" role="radiogroup" aria-label={t('sim.skin')}>
           {SKINS.map((c) => (
             <button key={c} role="radio" aria-checked={w.skin === c} aria-label={c} onClick={() => w.set({ skin: c })}
@@ -409,7 +428,12 @@ function Scene({ style, body, pose, playing, phase, live, fitMap, skin, hair, si
   const mainFabric = fabricById(upper?.material.fabricId ?? 'fab-cotton-poplin') ?? fabricById('fab-cotton-poplin')!
   const phys = useMemo(() => fabricPhysics(mainFabric), [mainFabric])
   const stiffness = Math.min(1, Math.log10(1 + phys.bending) / 1.5)
-  const g3 = useMemo(() => buildGarment3D(m, spec, stiffness), [m, spec, stiffness])
+  const avatar = useAvatar()
+  const custom = !!avatar.url
+  const [envVer, setEnvVer] = useState(0)
+  const onEnvelope = useMemo(() => (fn: ((y: number) => Ring | null) | null) => { setEnvelopeOverride(fn); setEnvVer((v) => v + 1) }, [])
+  useEffect(() => () => setEnvelopeOverride(null), [])
+  const g3 = useMemo(() => buildGarment3D(m, spec, stiffness), [m, spec, stiffness, envVer]) // eslint-disable-line react-hooks/exhaustive-deps
   const anglesRef = useRef<Angles>(poseAngles(pose, 0, m))
   const timeRef = useRef(phase)
   const tr = useTransient()
@@ -495,7 +519,7 @@ function Scene({ style, body, pose, playing, phase, live, fitMap, skin, hair, si
     const out: number[] = []
     for (let i = 0; i <= 70; i++) { const e = envelopeRingAt(m, y1 - ((y1 - y0) * i) / 70); out.push(e.y, e.rx, e.rz) }
     return Float32Array.from(out)
-  }, [m])
+  }, [m, envVer]) // eslint-disable-line react-hooks/exhaustive-deps
   const manual = useRef(false)
   const startSim = (isManual = false) => {
     manual.current = isManual
@@ -568,7 +592,7 @@ function Scene({ style, body, pose, playing, phase, live, fitMap, skin, hair, si
     else timeRef.current = phase
     // While a drape is settling, blend in from standing so limbs sweep the cloth
     // (starting inside it would push vertices out the wrong side).
-    const target = poseAngles(pose, timeRef.current, m)
+    const target = poseAngles(custom ? 'standing' : pose, timeRef.current, m)
     const settlingNow = !!client.current && useTransient.getState().simStatus === 'running'
     const blend = settlingNow ? Math.min(1, simFrames.current / (SIM_FRAMES * 0.45)) : 1
     const a = blend >= 1 ? target : mixAngles(poseAngles('standing', 0, m), target, blend * blend * (3 - 2 * blend))
@@ -636,23 +660,26 @@ function Scene({ style, body, pose, playing, phase, live, fitMap, skin, hair, si
   return (
     <group ref={rootRef}>
       {/* body */}
+      {custom && <CustomAvatar url={avatar.url!} flip={avatar.flip} m={m} onEnvelope={onEnvelope} />}
+      <group visible={!custom}>
       <mesh geometry={bodyGeo.torso} material={bodySkin} />
       <mesh geometry={bodyGeo.head} material={human ? faceMat : skinMat} />
       {hairGeo.map((h, i) => <mesh key={i} geometry={h} material={hairMat} />)}
+      </group>
       {([-1, 1] as const).map((s) => (
         <group key={s}>
           <group ref={(g) => { joints.current[s < 0 ? 'thighL' : 'thighR'] = g }} position={[s * m.legOffset, hipY, 0]}>
-            <mesh geometry={bodyGeo.leg.thigh} material={bodySkin} />
+            <mesh geometry={bodyGeo.leg.thigh} material={bodySkin} visible={!custom} />
             {legTubes.thighG && <mesh geometry={legTubes.thighG.geometry} material={mats.lower} />}
             <group ref={(g) => { joints.current[s < 0 ? 'kneeL' : 'kneeR'] = g }} position={[0, -thighLen, 0]}>
-              <mesh geometry={bodyGeo.leg.shin} material={bodySkin} />
+              <mesh geometry={bodyGeo.leg.shin} material={bodySkin} visible={!custom} />
               {legTubes.shinG && <mesh geometry={legTubes.shinG.geometry} material={mats.lower} />}
-              {human ? <mesh geometry={shoeGeo} material={shoeMat} /> : <mesh geometry={bodyGeo.leg.foot} material={skinMat} />}
+              {!custom && (human ? <mesh geometry={shoeGeo} material={shoeMat} /> : <mesh geometry={bodyGeo.leg.foot} material={skinMat} />)}
             </group>
           </group>
           <group ref={(g) => { joints.current[s < 0 ? 'armL' : 'armR'] = g }} position={[s * m.shoulderJoint.x, m.shoulderJoint.y, 0]}>
-            <mesh geometry={bodyGeo.arm.arm} material={bodySkin} />
-            <group scale={[s, 1, 1]}>
+            <mesh geometry={bodyGeo.arm.arm} material={bodySkin} visible={!custom} />
+            <group scale={[s, 1, 1]} visible={!custom}>
               <mesh geometry={bodyGeo.arm.palm} material={bodySkin} />
               <mesh geometry={bodyGeo.arm.thumb} material={bodySkin} />
             </group>
